@@ -1,0 +1,27 @@
+>>> for i in range(0, 8, 2):
+...     print str(i) + " " + str(i + 1)
+...
+0 1
+2 3
+4 5
+6 7
+
+>>> st = playerStandings()
+>>> count = len(st)
+>>> for i in range(0, count, 2):
+...     print str(st[i][0]) + " " + str(st[i][1]) + " - " + str(st[i + 1][0]) + " " + str(st[i + 1][1])
+...
+30 Rainbow Dash - 32 Princess Luna
+25 Twilight Sparkle - 27 Applejack
+29 Rarity - 31 Princess Celestia
+28 Pinkie Pie - 26 Fluttershy
+
+
+>>> st = iter(playerStandings())
+>>> for pl in st:
+...     print str(pl) + " - " + str(next(st))
+...
+(30, 'Rainbow Dash', 1L, 1L) - (32, 'Princess Luna', 1L, 1L)
+(25, 'Twilight Sparkle', 1L, 1L) - (27, 'Applejack', 1L, 1L)
+(29, 'Rarity', 0L, 1L) - (31, 'Princess Celestia', 0L, 1L)
+(28, 'Pinkie Pie', 0L, 1L) - (26, 'Fluttershy', 0L, 1L)

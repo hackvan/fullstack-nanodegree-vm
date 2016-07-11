@@ -13,16 +13,33 @@ def connect():
 
 def deleteMatches():
     """Remove all the match records from the database."""
-
+    DB = connect()
+    cursor = DB.cursor()
+    query = "DELETE FROM matches"
+    cursor.execute(query)
+    DB.commit()
+    DB.close()
+	
 
 def deletePlayers():
     """Remove all the player records from the database."""
-
+    DB = connect()
+    cursor = DB.cursor()
+    query = "DELETE FROM players"
+    cursor.execute(query)
+    DB.commit()
+    DB.close()
 
 def countPlayers():
     """Returns the number of players currently registered."""
-
-
+    DB = connect()
+    cursor = DB.cursor()
+    query = "SELECT COUNT(id) FROM players"
+    cursor.execute(query)
+    count = cursor.fetchall()[0][0]
+    DB.close()
+    return count
+	
 def registerPlayer(name):
     """Adds a player to the tournament database.
   
@@ -32,7 +49,13 @@ def registerPlayer(name):
     Args:
       name: the player's full name (need not be unique).
     """
-
+    DB = connect()
+    dml = "INSERT INTO players(name) VALUES(%s) "
+    cursor = DB.cursor()    
+    cursor.execute(dml, (name,))
+    DB.commit()
+    DB.close()
+	
 
 def playerStandings():
     """Returns a list of the players and their win records, sorted by wins.
@@ -47,16 +70,27 @@ def playerStandings():
         wins: the number of matches the player has won
         matches: the number of matches the player has played
     """
+    DB = connect()
+    cursor = DB.cursor()
+    query = "SELECT id, name, wins, matches FROM players_standings;"
+    cursor.execute(query)
+    results = cursor.fetchall()
+    DB.close()
+    return results
 
-
-def reportMatch(winner, loser):
+def reportMatch(winner, loser, tie = False):
     """Records the outcome of a single match between two players.
 
     Args:
       winner:  the id number of the player who won
       loser:  the id number of the player who lost
     """
- 
+    DB = connect()
+    cursor = DB.cursor()
+    dml = "INSERT INTO matches(id_winner, id_loser, is_tie) VALUES(%s, %s, %s) "
+    cursor.execute(dml, (winner, loser, tie,))
+    DB.commit()
+    DB.close()
  
 def swissPairings():
     """Returns a list of pairs of players for the next round of a match.
@@ -73,5 +107,15 @@ def swissPairings():
         id2: the second player's unique id
         name2: the second player's name
     """
+    results = playerStandings()
+    pairings = []
+    count = len(results)
 
+    # Count rows and increment by 2 for pairing using range.
+    # Include Name & id columns.
+    for i in range(0, count, 2):
+        paired_list = (results[i][0], results[i][1],
+                       results[i + 1][0], results[i + 1][1])
+        pairings.append(paired_list)
+    return pairings
 
