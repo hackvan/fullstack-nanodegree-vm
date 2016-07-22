@@ -11,6 +11,7 @@ DBSession = sessionmaker(bind = engine)
 # A session allows us to write down all the commands we want to execute 
 # But not send them to the database until we call a commit
 session = DBSession()
+
 myFirstRestaurant = Restaurant(name = "Pizza Palace")
 session.add(myFirstRestaurant)
 session.commit()
