@@ -1,4 +1,4 @@
-from flask import Flask, render_template, url_for, request, redirect
+from flask import Flask, render_template, url_for, request, redirect, flash, jsonify
 app = Flask(__name__)
 
 from sqlalchemy import create_engine, func, distinct
@@ -42,6 +42,7 @@ def newMenuItem(restaurant_id):
 		newItem = MenuItem(name = request.form['name'], restaurant_id = restaurant_id)
 		session.add(newItem)
 		session.commit()
+		flash("New menu item created!")
 		return redirect(url_for('restaurantMenu', restaurant_id = restaurant_id))
 	else:  # It's a GET request.
 		return render_template('newmenuitem.html', restaurant_id = restaurant_id)
@@ -55,8 +56,15 @@ def editMenuItem(restaurant_id, menu_id):
 	if request.method == 'POST':
 		if request.form['name']:
 			editItem.name = request.form['name']
+		if request.form['description']:
+			editItem.description = request.form['description']
+		if request.form['price']:			
+			editItem.price = request.form['price']
+		if request.form['course']:
+			editItem.course = request.form['course']
 		session.add(editItem)
 		session.commit()
+		flash("Menu item edited")
 		return redirect(url_for('restaurantMenu', restaurant_id = restaurant_id))
 	else:
 		# Remember always send the variables that the template require.
@@ -71,9 +79,28 @@ def deleteMenuItem(restaurant_id, menu_id):
 	if request.method == 'POST':
 		session.delete(deletedItem)
 		session.commit()
+		flash("Menu item deleted")
 		return redirect(url_for('restaurantMenu', restaurant_id = restaurant_id))
 	else:
 		return render_template('deletemenuitem.html', item = deletedItem)
+
+# Making an API Endpoint (GET Request)
+@app.route('/restaurants/<int:restaurant_id>/menu/JSON')
+def restaurantMenuJSON(restaurant_id):
+	restaurant = session.query(Restaurant).\
+					filter_by(id = restaurant_id).\
+					one()
+	items = session.query(MenuItem).\
+				filter_by(restaurant_id = restaurant.id).\
+				order_by(MenuItem.name.asc())
+	return jsonify(MenuItems=[i.serialize for i in items])
+
+@app.route('/restaurants/<int:restaurant_id>/menu/<int:menu_id>/JSON')
+def menuItemJSON(restaurant_id, menu_id):
+	menu_item = session.query(MenuItem).\
+					filter_by(restaurant_id = restaurant_id, id = menu_id).\
+					one()
+	return jsonify(MenuItems=menu_item.serialize)
 
 ''' Flask's Documentation :
 > App route decorator: Python use the decorator ...
@@ -133,5 +160,6 @@ for example: If we have functions with the decorator @app.route defined.
 # the Python script is call directly on the console, if it's use by import
 # this code doesn't execute.
 if __name__ == '__main__':
+	app.secret_key = 'super_secret_key'
 	app.debug = True
 	app.run(host = '0.0.0.0', port = 5000)
